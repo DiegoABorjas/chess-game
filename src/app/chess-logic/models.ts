@@ -38,3 +38,5 @@ export const pieceImagePaths: Readonly<Record<FENChar, string>> = {
     [FENChar.BlackKing]: "assets/pieces/black king.svg",
     [FENChar.BlackRook]: "assets/pieces/black rook.svg"
 }
+
+export type SafeSquares = Map<string, Coordinates[]>;

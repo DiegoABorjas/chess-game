@@ -22,7 +22,7 @@
     height: 60px;
     width: 60px;
     cursor: pointer;
-    border: 1px solid #333333;
+    border: 1px solid #525252;
     background-color: white;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .dark {
-    background-color: #333333
+    background-color: #525252
 }
 
 .light {
