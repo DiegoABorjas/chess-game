@@ -37,9 +37,16 @@ export class ChessBoardComponent {
 
   public selectingPiece(x: number, y: number): void{
     const piece: FENChar | null = this.chessBoardView[x][y];
-    if(!piece) return;
+    if (!piece) return;
+    if (this.isWrongPieceSelected(piece)) return;
 
     this.selectedSquare = { piece, x, y };
     this.pieceSafeSquares = this.safeSquares.get(x + "," + y) || [];
   }
+
+  private isWrongPieceSelected(piece:FENChar): boolean {
+    const isWhitePieceSelected: boolean = piece === piece.toLocaleUpperCase();
+    return isWhitePieceSelected && this.playerColor === Color.Black || !isWhitePieceSelected && this.playerColor === Color.White;
+  }
+
 }
