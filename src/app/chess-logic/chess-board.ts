@@ -123,7 +123,10 @@ export class ChessBoard{
         return false;
     }
 
-    private isPositionSafeAfterMove(piece:Piece, prevX: number, prevY: number, newX: number, newY: number): boolean{
+    private isPositionSafeAfterMove(prevX: number, prevY: number, newX: number, newY: number): boolean{
+        const piece: Piece|null = this.chessBoard[prevX][prevY];
+        if (!piece) return false;
+        
         const newPiece:Piece|null = this.chessBoard[newX][newY];
 
         //cannot put piece on square that already contains piece of same color
@@ -177,7 +180,7 @@ export class ChessBoard{
                     }
 
                     if(piece instanceof Pawn || piece instanceof Knight || piece instanceof King){
-                        if(this.isPositionSafeAfterMove(piece, x, y, newX, newY))
+                        if(this.isPositionSafeAfterMove(x, y, newX, newY))
                             pieceSafeSquares.push({x: newX, y: newY});
                     }
                     else {
@@ -185,7 +188,7 @@ export class ChessBoard{
                             newPiece = this.chessBoard[newX][newY];
                             if(newPiece && newPiece.color === piece.color) break;
 
-                            if(this.isPositionSafeAfterMove(piece, x, y, newX, newY))
+                            if(this.isPositionSafeAfterMove(x, y, newX, newY))
                             pieceSafeSquares.push({x: newX, y: newY});
 
                             if(newPiece !== null) break;
@@ -226,7 +229,7 @@ export class ChessBoard{
         const pawnNewPositionY: number = currY;
 
         this.chessBoard[currX][currY] = null;
-        const isPositionSafe: boolean = this.isPositionSafeAfterMove(pawn, pawnX, pawnY, pawnNewPositionX, pawnNewPositionY);
+        const isPositionSafe: boolean = this.isPositionSafeAfterMove(pawnX, pawnY, pawnNewPositionX, pawnNewPositionY);
         this.chessBoard[currX][currY] = piece;
 
         return isPositionSafe;
@@ -251,13 +254,13 @@ export class ChessBoard{
 
         if (!kingSideCastle && this.chessBoard[kingPositionX][1]) return false;
 
-        return this.isPositionSafeAfterMove(king, kingPositionX, kingPositionY, kingPositionX, firstNextKingPositionY) && 
-            this.isPositionSafeAfterMove(king, kingPositionX, kingPositionY, kingPositionX, secondNextKingPositionY);
+        return this.isPositionSafeAfterMove(kingPositionX, kingPositionY, kingPositionX, firstNextKingPositionY) && 
+            this.isPositionSafeAfterMove(kingPositionX, kingPositionY, kingPositionX, secondNextKingPositionY);
     }
 
-    public move(prevX: number, prevY: number, newX: number, newY: number): void {
+    public move(prevX: number, prevY: number, newX: number, newY: number, promotedPieceType: FENChar | null): void {
         if(!this.areCoordsValid(prevX, prevY) || !this.areCoordsValid(newX, newY)) return;
-        const piece: Piece|null = this.chessBoard[prevX][prevY];
+        const piece: Piece | null = this.chessBoard[prevX][prevY];
         if(!piece || piece.color !== this._playerColor) return;
 
         const pieceSafeSquares: Coordinates[]|undefined = this._safeSquares.get(prevX + "," + prevY);
@@ -269,8 +272,13 @@ export class ChessBoard{
 
         this.handlingSpecialMoves(piece, prevX, prevY, newX, newY);
         //update board
+        if (promotedPieceType) {
+            this.chessBoard[newX][newY] = this.promotedPiece(promotedPieceType);
+        } else {
+            this.chessBoard[newX][newY] = piece;
+        }
+
         this.chessBoard[prevX][prevY] = null;
-        this.chessBoard[newX][newY] = piece;
 
         this._lastMove = {prevX, prevY, currX:newX, currY:newY, piece};
         this._playerColor = this._playerColor === Color.White ? Color.Black : Color.White;
@@ -300,5 +308,18 @@ export class ChessBoard{
         ) {
             this.chessBoard[this._lastMove.currX][this._lastMove.currY] = null;
         }
+    }
+
+    private promotedPiece(promotedPieceType: FENChar): Knight | Bishop | Rook | Queen {
+        if (promotedPieceType === FENChar.WhiteKnight || promotedPieceType === FENChar.BlackKnight)
+            return new Knight(this._playerColor);
+
+        else if (promotedPieceType === FENChar.WhiteBishop || promotedPieceType === FENChar.BlackBishop)
+            return new Bishop(this._playerColor);
+
+        else if (promotedPieceType === FENChar.WhiteRook || promotedPieceType === FENChar.BlackRook)
+            return new Rook(this._playerColor);
+
+        else return new Queen(this._playerColor);        
     }
 }
